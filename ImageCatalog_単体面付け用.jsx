@@ -1,88 +1,41 @@
-//ImageCatalog.jsx
-//An InDesign JavaScript 
-/*  
-@@@BUILDINFO@@@ "ImageCatalog.jsx" 3.0.0 15 December 2009
-*/ 
-//Creates an image catalog from the graphic files in a selected folder. 
-//Each file can be labeled with the file name, and the labels are placed on 
-//a separate layer and formatted using a paragraph style ("label") you can 
-//modify to change the appearance of the labels. 
-// 
-//For more on InDesign/InCopy scripting see the documentation included in the Scripting SDK 
-//available at http://www.adobe.com/devnet/indesign/sdk.html
-//Or visit the InDesign Scripting User to User forum at http://www.adobeforums.com . 
-// 
-//The myExtensions array contains the extensions of the graphic file types you want 
-//to include in the catalog. You can remove extensions from or add extensions to this list. 
-//myExtensions is a global. Mac OS users should also look at the file types in the myFileFilter function.
+// ImageCatalogForLabel.jsx
+// Fork of ImageCatalog.jsx
+// Windows only
+
 main();
-function main(){
+
+// main
+function main() {
+	// Target files
 	var myFilteredFiles;
-	//Make certain that user interaction (display of dialogs, etc.) is turned on.
+	// Make certain that user interaction (display of dialogs, etc.) is turned on.
 	app.scriptPreferences.userInteractionLevel = UserInteractionLevels.interactWithAll;
-	myExtensions = [".jpg", ".jpeg", ".eps", ".ps", ".pdf", ".tif", ".tiff", ".gif", ".psd", ".ai"] 
-	//Display the folder browser. 
-	var myFolder = Folder.selectDialog("Select the folder containing the images", ""); 
-	//Get the path to the folder containing the files you want to place. 
-	if(myFolder != null){ 
-			if(File.fs == "Macintosh"){
-				myFilteredFiles = myMacOSFileFilter(myFolder);
-			}
-			else{
-				myFilteredFiles = myWinOSFileFilter(myFolder);
-			}
-			if(myFilteredFiles.length != 0){ 
-					myDisplayDialog(myFilteredFiles, myFolder); 
-					alert("Done!");
-			} 
-	}
-}
-//Windows version of the file filter.
-function myWinOSFileFilter(myFolder){
-	var myFiles = new Array;
-	var myFilteredFiles = new Array; 
-	for(myExtensionCounter = 0; myExtensionCounter < myExtensions.length; myExtensionCounter++){ 
-		myExtension = myExtensions[myExtensionCounter]; 
-        myFiles = myFolder.getFiles("*"+ myExtension); 
-		if(myFiles.length != 0){ 
-			for(var myFileCounter = 0; myFileCounter < myFiles.length; myFileCounter++){ 
-				myFilteredFiles.push(myFiles[myFileCounter]); 
-			} 
+	// Display the folder browser. 
+	var myFile = File.openDialog("Select the jpg file", ""); 
+	// Get the path to the folder containing the files you want to place. 
+	if(myFile != null){ 
+		myFilteredFiles = myWinOSFileFilter(myFile);	
+		if(myFilteredFiles.length != 0){ 
+			myDisplayDialog(myFilteredFiles, myFile); 
+			alert("Done!");
 		} 
-	}	
-	return myFilteredFiles;
-}
-function myMacOSFileFilter(myFolder){
-	var myFilteredFiles = myFolder.getFiles(myFileFilter);
-	return myFilteredFiles;
-}
-//Mac OS version of file filter
-//Have to provide a separate version because not all Mac OS users use file extensions
-//and/or file extensions are sometimes hidden by the Finder.
-function myFileFilter(myFile){
-	var myFileType = myFile.type;
-	switch (myFileType){
-		case "JPEG":
-		case "EPSF":
-		case "PICT":
-		case "TIFF":
-		case "8BPS":
-		case "GIFf":
-		case "PDF ":
-			return true;
-			break;
-		default:
-		for(var myCounter = 0; myCounter<myExtensions.length; myCounter++){
-			var myExtension = myExtensions[myCounter]; 	
-			if(myFile.name.indexOf(myExtension)>-1){
-				return true;
-				break;			
-			}
-		}
 	}
-	return false;	
 }
-function myDisplayDialog(myFiles, myFolder){ 
+// Windows version of the file filter.
+function myWinOSFileFilter(myFile){
+	// total labels
+	var myFileCount = 12;
+	// files
+	var myFilteredFiles = new Array; 
+	// loop for layout
+	for(var myFileCounter = 0; myFileCounter < myFileCount; myFileCounter++){ 
+		myFilteredFiles.push(myFile); 
+	} 	
+	return myFilteredFiles;
+}
+
+// Windows version of dialog
+function myDisplayDialog(myFiles, myFile){ 
 	var myLabelWidth = 112; 
 	var myStyleNames = myGetParagraphStyleNames(app);
 	var myLayerNames = ["Layer 1", "Labels"];
@@ -95,7 +48,7 @@ function myDisplayDialog(myFiles, myFolder){
 			with(dialogColumns.add()){
 				with(dialogRows.add()){ 
 					staticTexts.add({staticLabel:"Source Folder:", minWidth:myLabelWidth}); 
-					staticTexts.add({staticLabel:myFolder.path + "/" + myFolder.name}); 
+					staticTexts.add({staticLabel:myFile.path + "/" + myFile.name}); 
 				} 
 				with(dialogRows.add()){ 
 					staticTexts.add({staticLabel:"Number of Images:", minWidth:myLabelWidth}); 
@@ -216,6 +169,7 @@ function myDisplayDialog(myFiles, myFolder){
 		}
 	}
 }
+
 function myGetParagraphStyleNames(myDocument){
 	var myStyleNames = new Array;
 	var myAddLabelStyle = true;
@@ -230,11 +184,11 @@ function myGetParagraphStyleNames(myDocument){
 	}
 	return myStyleNames;
 }
+
 function myMakeImageCatalog(myFiles, myNumberOfRows, myNumberOfColumns, myRemoveEmptyFrames, myFitProportional, myFitCenterContent, myFitFrameToContent, myHorizontalOffset, myVerticalOffset, myMakeLabels, myLabelType, myLabelHeight, myLabelOffset, myLabelStyle,  myLayerName){
 	var myPage, myFile, myCounter, myX1, myY1, myX2, myY2, myRectangle, myLabelStyle, myLabelLayer; 
 	var myParagraphStyle, myError;
 	var myFramesPerPage = myNumberOfRows * myNumberOfColumns;  
-	//var myDocument = app.documents.add(); 
 	var myDocument = app.open("C:\\Users\\ebisu-do\\Documents\\work\\auto\\test11.indd");
 	myDocument.viewPreferences.horizontalMeasurementUnits = MeasurementUnits.points; 
 	myDocument.viewPreferences.verticalMeasurementUnits = MeasurementUnits.points; 
@@ -327,7 +281,8 @@ function myMakeImageCatalog(myFiles, myNumberOfRows, myNumberOfColumns, myRemove
 		}
 	}
 }
-//Function that adds the label.
+
+// Function that adds the label.
 function myAddLabel(myFrame, myLabelType, myLabelHeight, myLabelOffset, myLabelStyleName, myLayerName){
 	var myDocument = app.documents.item(0);
 	var myLabel;
